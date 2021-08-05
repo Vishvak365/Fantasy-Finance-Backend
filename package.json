@@ -1,0 +1,19 @@
+{
+  "name": "Fantasy-Finance-Backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/Vishvak365/Fantasy-Finance-Backend",
+  "author": "Vishvak Seenichamy <vishvak365@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "nodemon": "nodemon server.js"
+  },
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "firebase-admin": "^9.11.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.12"
+  }
+}
