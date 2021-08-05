@@ -3,27 +3,12 @@ const app = express();
 const dotenv = require("dotenv");
 const firebase = require("./Firebase");
 const account = require("./Routes/account");
+const trade = require("./Routes/trade");
 dotenv.config();
 
 app.use("/account", account);
+app.use("/trade", trade);
 app.get("/", (req, res) => {
-  const uid = "aklsdjfalksdjf";
-  firebase
-    .firestore()
-    .collection("users")
-    .doc(uid)
-    // .update({
-    //   arrayField: firebase.firestore.FieldValue.arrayUnion("greater_virginia"),
-    // })
-    .set({
-      test: "test",
-      anotherField: "alkasdfasdfasdfsdjf",
-      evenMoreField: "alkdsjf",
-      arrayField: [{ timeExecuted: 23423544213413, stock: "aapl" }],
-    })
-    .catch((error) => {
-      console.log(error);
-    });
   res.send("Authenticated");
 });
 
