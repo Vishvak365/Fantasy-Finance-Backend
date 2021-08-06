@@ -3,7 +3,7 @@ var router = express.Router();
 const firebase = require("../Firebase");
 
 router.get("/makeTrade", function (req, res) {
-  const uid = "aklsdjfalksdjf";
+  const uid = res.locals.uid;
   const stockName = req.query.stockName;
   const action = req.query.action;
   firebase
@@ -19,12 +19,15 @@ router.get("/makeTrade", function (req, res) {
     })
     .catch((error) => {
       console.log(error);
+      res.status(500);
+      res.json({ message: "Unable to execute trade" });
     });
-  res.send("alsdkjf");
+  res.status(202);
+  res.json({ message: "successfully traded" });
 });
 
 router.get("/history", function (req, res) {
-  const uid = "aklsdjfalksdjf";
+  const uid = res.locals.uid;
   let history = [];
   firebase
     .firestore()
