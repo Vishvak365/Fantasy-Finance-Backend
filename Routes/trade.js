@@ -21,6 +21,7 @@ router.get("/makeTrade", function (req, res) {
       console.log(error);
       res.status(500);
       res.json({ message: "Unable to execute trade" });
+      return
     });
   res.status(202);
   res.json({ message: "successfully traded" });
@@ -43,6 +44,9 @@ router.get("/history", function (req, res) {
     })
     .then(() => {
       res.json(history);
+    })
+    .catch((err) => {
+      res.json({ message: "Unable to get history" })
     });
 });
 
