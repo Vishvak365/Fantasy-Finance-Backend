@@ -1,19 +1,20 @@
 var express = require("express");
 var router = express.Router();
+const { buy_stock } = require("./leagues_trade/buy_stock");
 const firebase = require("../Firebase");
 
 const leagues = firebase.firestore().collection("leagues");
-
-const samplePost = {
-  name: "Fantasy Finance League XYZ",
-  dayTrading: true,
-  marketHoursOnly: true,
-  startingCapital: 45000,
-  //optionalx
-  draftMode: {
-    draftEnd: 3242830480329,
-  },
-};
+router.post("/trade/buy_stock", buy_stock);
+// const samplePost = {
+//   name: "Fantasy Finance League XYZ",
+//   dayTrading: true,
+//   marketHoursOnly: true,
+//   startingCapital: 45000,
+//   //optionalx
+//   draftMode: {
+//     draftEnd: 3242830480329,
+//   },
+// };
 
 // Endpoint to create new league
 router.post("/create", function (req, res) {
