@@ -15,7 +15,7 @@
     "express": "^4.17.1",
     "firebase-admin": "^9.11.0",
     "stripe": "^8.169.0",
-    "yahoo-finance": "^0.3.7"
+    "yarn": "^1.22.11"
   },
   "devDependencies": {
     "nodemon": "^2.0.12"
