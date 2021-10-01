@@ -16,6 +16,14 @@ router.post("/trade/buy_stock", buy_stock);
 //   },
 // };
 
+// {"name": "Fantasy Finance League XYZ",
+//   "dayTrading": true,
+//   "marketHoursOnly": true,
+//   "startingCapital": 45000,
+//   "draftMode": {
+//     "draftEnd": 3242830480329
+//   }
+// }
 // Endpoint to create new league
 router.post("/create", function (req, res) {
   const uid = res.locals.uid;
