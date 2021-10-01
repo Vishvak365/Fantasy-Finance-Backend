@@ -1,13 +1,15 @@
 var express = require("express");
 var router = express.Router();
+const IEXClient = require("../../IEXClient");
 const firebase = require("../../Firebase");
-
+const getCurrPrice = require("./curr_price");
 const leagues = firebase.firestore().collection("leagues");
 
-function buy_stock(req, res) {
+async function buy_stock(req, res) {
   const uid = res.locals.uid;
   const body = req.body;
-
+  const currStockPrice = getCurrPrice();
+  
   //Checks to make sure that all the information is provided
   if ((!body.stockName, !body.quantity, !body.leagueId)) {
     res.status(400);
