@@ -19,4 +19,5 @@ async function getCurrPrice(stockName) {
     return undefined;
   }
 }
+
 module.exports = getCurrPrice;
