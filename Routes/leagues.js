@@ -2,6 +2,7 @@ var express = require("express");
 var router = express.Router();
 const { buy_stock } = require("./leagues_trade/buy_stock");
 const firebase = require("../Firebase");
+const { sell_stock } = require("./leagues_trade/sell_stock");
 
 const leagues = firebase.firestore().collection("leagues");
 router.post("/trade/buy_stock", buy_stock);
@@ -15,6 +16,8 @@ router.post("/trade/buy_stock", buy_stock);
 //     draftEnd: 3242830480329,
 //   },
 // };
+
+router.post("/trade/sell_stock", sell_stock);
 
 // Endpoint to create new league
 router.post("/create", function (req, res) {
