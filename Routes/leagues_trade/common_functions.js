@@ -4,7 +4,7 @@ function isWithinMarketHours(marketHoursOnly) {
   const min = date.getMinutes();
   const marketClosed = (hour <= 9 && min < 30) || hour >= 16;
   //!!!CHANGE - TESTING RN
-  return true;
+  // return true;
   if (marketHoursOnly) {
     if (!marketClosed) return true;
     else return false;
@@ -13,7 +13,7 @@ function isWithinMarketHours(marketHoursOnly) {
   }
 }
 function sufficientFunds(currUserCash, currStockPrice, quantity) {
-  console.log(currUserCash, currStockPrice, quantity);
+  // console.log(currUserCash, currStockPrice, quantity);
   return currUserCash >= quantity * currStockPrice;
 }
 module.exports = { isWithinMarketHours, sufficientFunds };
