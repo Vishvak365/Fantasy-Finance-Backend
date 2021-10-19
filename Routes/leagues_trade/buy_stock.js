@@ -29,9 +29,9 @@ const getStockQuantity = async (stockName, leagueId, uid) => {
 
 async function buy_stock(req, res) {
   const uid = res.locals.uid;
-  console.log(uid);
+  // console.log(uid);
   const body = req.body;
-  console.log(body);
+  // console.log(body);
   if ((!body.stockName, !body.quantity, !body.leagueId)) {
     res.status(400);
     res.send({ message: "Insufficient information" });
@@ -40,8 +40,10 @@ async function buy_stock(req, res) {
   const currStockPrice = await getCurrPrice(body.stockName);
   const leagueData = await getLeagueData(body.leagueId);
   const currUserCash = await getUserCash(body.leagueId, uid);
+
   console.log("current user case", currUserCash);
   console.log("curr stock price", currStockPrice);
+
   const checkSufficientFunds = sufficientFunds(
     currUserCash,
     currStockPrice,
@@ -51,6 +53,8 @@ async function buy_stock(req, res) {
     leagueData.marketHoursOnly,
     body.quantity
   );
+
+  
   if (!checkMarketHours) {
     res.status(400);
     res.send({ message: "out of market hours" });
