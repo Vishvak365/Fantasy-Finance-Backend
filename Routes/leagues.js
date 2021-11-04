@@ -111,4 +111,23 @@ router.post("/addUser", async function (req, res) {
     res.send({ message: "error in adding user to league" });
   }
 });
+// Endpoint to get all leagues that a user is a part of
+router.get("/getUserLeagues", async function (req, res) {
+  const uid = res.locals.uid;
+  try {
+    const leagues = await firebase
+      .firestore()
+      .collection("users")
+      .doc(uid)
+      .collection("leagues")
+      .get();
+    const leagueData = leagues.docs.map((doc) => doc.data());
+    res.status(200);
+    res.json(leagueData);
+  } catch (exception) {
+    console.log(exception);
+    res.status(500);
+    res.send({ message: "error in getting user leagues" });
+  }
+});
 module.exports = router;
