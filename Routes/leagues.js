@@ -59,22 +59,46 @@ async function getLeagueInitialCapital(leagueID) {
 router.post("/addUser", async function (req, res) {
   const uid = res.locals.uid;
   const body = req.body;
-  if (!body.uid || !body.leagueID) {
+  if (!body.leagueID) {
+    console.log("no leagueID");
     res.status(400);
     res.send({ message: "Insufficient information to add user to league" });
+    return;
+  }
+  //Check Firebase Firestore to make sure that league ID collection exists
+  const leagueID = body.leagueID;
+  const league = await leagues.doc(leagueID).get();
+  if (!league.exists) {
+    res.status(400);
+    res.send({ message: "League does not exist" });
+    return;
+  }
+  //Check Firebase firestore to make sure that user is not already in league collection
+  const user = await leagues.doc(leagueID).collection("members").doc(uid).get();
+  if (user.exists) {
+    res.status(400);
+    res.send({ message: "User is already in league" });
     return;
   }
   try {
     // Get league info about initial capital
     const startingCapital = await getLeagueInitialCapital(body.leagueID);
-    leagues
+    // Add user to league in leagues collection
+    leagues.doc(body.leagueID).collection("members").doc(uid).set({
+      cash: startingCapital,
+      addedBy: uid,
+      addedOn: firebase.firestore.Timestamp.now(),
+    });
+    // Add league id and league name in user collection
+    firebase
+      .firestore()
+      .collection("users")
+      .doc(uid)
+      .collection("leagues")
       .doc(body.leagueID)
-      .collection("members")
-      .doc(body.uid)
       .set({
-        cash: startingCapital,
-        addedBy: uid,
-        addedOn: firebase.firestore.Timestamp.now(),
+        leagueID: body.leagueID,
+        leagueName: league.data().name,
       })
       .then((data) => {
         res.status(200);
