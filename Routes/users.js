@@ -23,7 +23,7 @@ router.post("/createUser", (req, res) => {
             ...body,
             user: uid,
             name: userRecord.displayName,
-            Premium: false,
+            premium: false,
             created: firebase.firestore.Timestamp.now(),
           })
           .then((data) => {
