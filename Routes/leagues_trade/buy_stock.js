@@ -101,7 +101,7 @@ async function buy_stock(req, res) {
     return;
   }
 
-  
+  // Updating the user's history of transactions
   try {
     users 
       .doc(uid)
