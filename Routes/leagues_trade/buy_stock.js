@@ -1,13 +1,12 @@
 var express = require("express");
-var router = express.Router();
-const IEXClient = require("../../IEXClient");
 const firebase = require("../../Firebase");
 const getCurrPrice = require("./curr_price");
 const { isWithinMarketHours, sufficientFunds } = require("./common_functions");
 const leagues = firebase.firestore().collection("leagues");
+const users = firebase.firestore().collection("users");
 
-const getLeagueData = async (leagueID) => {
-  const data = await leagues.doc(leagueID).get();
+const getLeagueData = async (leagueId) => {
+  const data = await leagues.doc(leagueId).get();
   console.log(data.data());
   return data.data();
 };
@@ -29,9 +28,8 @@ const getStockQuantity = async (stockName, leagueId, uid) => {
 
 async function buy_stock(req, res) {
   const uid = res.locals.uid;
-  // console.log(uid);
   const body = req.body;
-  // console.log(body);
+  //!FIXME Fix this logic to ||
   if ((!body.stockName, !body.quantity, !body.leagueId)) {
     res.status(400);
     res.send({ message: "Insufficient information" });
@@ -40,9 +38,6 @@ async function buy_stock(req, res) {
   const currStockPrice = await getCurrPrice(body.stockName);
   const leagueData = await getLeagueData(body.leagueId);
   const currUserCash = await getUserCash(body.leagueId, uid);
-
-  console.log("current user case", currUserCash);
-  console.log("curr stock price", currStockPrice);
 
   const checkSufficientFunds = sufficientFunds(
     currUserCash,
@@ -54,7 +49,6 @@ async function buy_stock(req, res) {
     body.quantity
   );
 
-  
   if (!checkMarketHours) {
     res.status(400);
     res.send({ message: "out of market hours" });
@@ -66,7 +60,12 @@ async function buy_stock(req, res) {
     return;
   }
   const newCash = currUserCash - body.quantity * currStockPrice;
-  const leagueQuantity = getStockQuantity(body.stockName, body.leagueId, uid);
+  const leagueQuantity = await getStockQuantity(
+    body.stockName,
+    body.leagueId,
+    uid
+  );
+  console.log("Stock Quantity", leagueQuantity);
 
   // Updating the User Cash based on the Stock price and Quantity
   try {
@@ -77,11 +76,6 @@ async function buy_stock(req, res) {
       .set({
         cash: newCash,
       })
-      .then((data) => {
-        res.status(200);
-        res.json(data);
-        return;
-      });
   } catch (exception) {
     console.log(exception);
     res.status(500);
@@ -100,11 +94,6 @@ async function buy_stock(req, res) {
       .set({
         quantity: leagueQuantity + body.quantity,
       })
-      .then((data) => {
-        res.status(200);
-        res.json(data);
-        return;
-      });
   } catch (exception) {
     console.log(exception);
     res.status(500);
@@ -112,8 +101,34 @@ async function buy_stock(req, res) {
     return;
   }
 
-  res.send("Buying stocks successful");
+  
+  try {
+    users 
+      .doc(uid)
+      .collection("history")
+      .doc()
+      .set({
+        quantity: body.quantity,  
+        price: currStockPrice,
+        stockName: body.stockName,
+        leagueName: leagueData.name,
+        leagueId: body.leagueId,
+        executed: firebase.firestore.Timestamp.now(),
+        action: "buy",
+      })
+      .then((data) => {
+        console.log(data);
+        res.send("Buying stocks successful");
+        return;
+      });
+  } catch (exception) {
+    console.log(exception);
+    res.status(500);
+    res.send({ message: "Error updating user's history" });
+    return;
+  }
 }
+
 //Checks to make sure that all the information is provided
 
 // TODO Make sure its a whole number
