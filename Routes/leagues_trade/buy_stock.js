@@ -16,6 +16,7 @@ const getUserCash = async (leagueId, uid) => {
   return data.data().cash;
 };
 const getStockQuantity = async (stockName, leagueId, uid) => {
+  try{
   const data = await leagues
     .doc(leagueId)
     .collection("members")
@@ -23,7 +24,12 @@ const getStockQuantity = async (stockName, leagueId, uid) => {
     .collection("stocks")
     .doc(stockName)
     .get();
-  return data.data().quantity;
+    return data.data().quantity;
+  }
+  catch(exception){
+    console.log("exception", exception);
+    return 0;
+  }
 };
 
 async function buy_stock(req, res) {
@@ -35,6 +41,7 @@ async function buy_stock(req, res) {
     res.send({ message: "Insufficient information" });
     return;
   }
+  console.log("UserID", uid);
   const currStockPrice = await getCurrPrice(body.stockName);
   const leagueData = await getLeagueData(body.leagueId);
   const currUserCash = await getUserCash(body.leagueId, uid);
@@ -66,6 +73,7 @@ async function buy_stock(req, res) {
     uid
   );
   console.log("Stock Quantity", leagueQuantity);
+ 
 
   // Updating the User Cash based on the Stock price and Quantity
   try {

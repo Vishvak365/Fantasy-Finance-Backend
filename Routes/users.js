@@ -18,7 +18,7 @@ router.post("/createUser", (req, res) => {
       // console.log(`Successfully fetched user data: ${userRecord.toJSON()}`);
       try {
         users
-          .doc()
+          .doc(uid)
           .set({
             ...body,
             user: uid,
