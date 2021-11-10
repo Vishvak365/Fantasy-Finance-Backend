@@ -138,4 +138,33 @@ router.get("/getUserLeagues", async function (req, res) {
     res.send({ message: "error in getting user leagues" });
   }
 });
+
+// Endpoint to get all history of a user   
+router.get("/getUserHistory", async function (req, res) {
+  const uid = res.locals.uid;
+  console.log("user", uid);
+  try {
+    const history = await firebase
+      .firestore()
+      .collection("users")
+      .doc(uid)
+      .collection("history")
+      .get();
+    const historyData = history.docs.map((doc) => doc.data());
+    res.status(200);
+    res.json(historyData);
+    console.log(historyData);
+  } catch (exception) {
+    console.log("Error", exception);
+    res.status(500);
+    res.send({ message: "error in getting user history" });
+  }
+});
+
+
 module.exports = router;
+// {
+//     "stockName": "TSLA",
+//     "quantity": 1,
+//     "leagueId": "BtKo6KxS84CqWQiNNEQQ"
+// }

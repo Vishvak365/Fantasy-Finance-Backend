@@ -35,6 +35,7 @@ const getStockQuantity = async (stockName, leagueId, uid) => {
 async function buy_stock(req, res) {
   const uid = res.locals.uid;
   const body = req.body;
+  console.log("body", body);
   //!FIXME Fix this logic to ||
   if ((!body.stockName, !body.quantity, !body.leagueId)) {
     res.status(400);
