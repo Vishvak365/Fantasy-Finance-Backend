@@ -3,41 +3,125 @@ var router = express.Router();
 const IEXClient = require("../../IEXClient");
 const firebase = require("../../Firebase");
 const getCurrPrice = require("./curr_price");
+const { isWithinMarketHours, sufficientFunds } = require("./common_functions");
 const leagues = firebase.firestore().collection("leagues");
+
+const getLeagueData = async (leagueID) => {
+  const data = await leagues.doc(leagueID).get();
+  console.log(data.data());
+  return data.data();
+};
+const getUserCash = async (leagueId, uid) => {
+  const data = await leagues.doc(leagueId).collection("members").doc(uid).get();
+  console.log(data.data());
+  return data.data().cash;
+};
+const getStockQuantity = async (stockName, leagueId, uid) => {
+  const data = await leagues
+    .doc(leagueId)
+    .collection("members")
+    .doc(uid)
+    .collection("stocks")
+    .doc(stockName)
+    .get();
+  return data.data().quantity;
+};
 
 async function buy_stock(req, res) {
   const uid = res.locals.uid;
+  // console.log(uid);
   const body = req.body;
-  const currStockPrice = await getCurrPrice();
-  
-  //Checks to make sure that all the information is provided
+  // console.log(body);
   if ((!body.stockName, !body.quantity, !body.leagueId)) {
     res.status(400);
     res.send({ message: "Insufficient information" });
     return;
   }
+  const currStockPrice = await getCurrPrice(body.stockName);
+  const leagueData = await getLeagueData(body.leagueId);
+  const currUserCash = await getUserCash(body.leagueId, uid);
 
-  //If users balance is > lastSalePrice of stock, then user can buy stock
-  //Else, provide error that user does not have enough balance to buy stock
+  console.log("current user case", currUserCash);
+  console.log("curr stock price", currStockPrice);
 
-  //Identify how to set up market is open for a certain time of day, if time is after "certain time", 
-  //then user is not able to buy_stock
+  const checkSufficientFunds = sufficientFunds(
+    currUserCash,
+    currStockPrice,
+    body.quantity
+  );
+  const checkMarketHours = isWithinMarketHours(
+    leagueData.marketHoursOnly,
+    body.quantity
+  );
 
-  //How long is draft mode, is this still a current option?
+  
+  if (!checkMarketHours) {
+    res.status(400);
+    res.send({ message: "out of market hours" });
+    return;
+  }
+  if (!checkSufficientFunds) {
+    res.status(400);
+    res.send({ message: "insufficent funds" });
+    return;
+  }
+  const newCash = currUserCash - body.quantity * currStockPrice;
+  const leagueQuantity = getStockQuantity(body.stockName, body.leagueId, uid);
 
-  //If league has ended, user is not allowed to buy stock
+  // Updating the User Cash based on the Stock price and Quantity
+  try {
+    leagues
+      .doc(body.leagueId)
+      .collection("members")
+      .doc(uid)
+      .set({
+        cash: newCash,
+      })
+      .then((data) => {
+        res.status(200);
+        res.json(data);
+        return;
+      });
+  } catch (exception) {
+    console.log(exception);
+    res.status(500);
+    res.send({ message: "Error updating cash" });
+    return;
+  }
 
-  //Once the user has bought a stock, the stock information has to be sent to calculate the user's
-  //overall profit or loss, according to the lastSalePrice of when they stock was bought
+  // Updating the User's stock quantity
+  try {
+    leagues
+      .doc(body.leagueId)
+      .collection("members")
+      .doc(uid)
+      .collection("stocks")
+      .doc(body.stockName)
+      .set({
+        quantity: leagueQuantity + body.quantity,
+      })
+      .then((data) => {
+        res.status(200);
+        res.json(data);
+        return;
+      });
+  } catch (exception) {
+    console.log(exception);
+    res.status(500);
+    res.send({ message: "Error updating user's share quantity" });
+    return;
+  }
 
-
-
-  //!TODO Check if user has sufficient balance in league
-  //!TODO Check if market is open (if league only allows market trading)
-  //!TODO Check day-trading restrictions
-  //!TODO Get stock price information from IEX
-  //!TODO Check draft-mode restrictions
-  //!TODO Check if league is ended
-  res.send("");
+  res.send("Buying stocks successful");
 }
+//Checks to make sure that all the information is provided
+
+// TODO Make sure its a whole number
+//TODO Check if user has sufficient balance in league DONE
+//!TODO Check if market is open (if league only allows market trading)
+//!TODO Check day-trading restrictions
+//!TODO Get stock price information from IEX
+//!TODO Check draft-mode restrictions
+//!TODO Check if league is ended
+
 module.exports = { buy_stock };
