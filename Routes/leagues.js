@@ -144,36 +144,6 @@ router.get("/getUserLeagues", async function (req, res) {
 });
 
 // Endpoint to get all history of a user
-const setBg = (historyData) => {
-  // let randomColor = Math.floor(Math.random() * 16777215).toString(16);
-  const colorObj = {};
-  const colorPool = [
-    "#bb045d",
-    "#77aabd",
-    "#b607ea",
-    "#4ec7a3",
-    "#a0b285",
-    "#51225a",
-    "#e72644",
-    "#4e2f91",
-    "#1d2f4a",
-    "#8d25da",
-  ];
-  let colorUsed = [];
-  historyData.forEach((data) => {
-    // select random color from color pool
-    let randomColor = colorPool[Math.floor(Math.random() * colorPool.length)];
-    // check if color is already used
-    if (colorUsed.includes(randomColor)) {
-      // if color is already used, select another color
-      randomColor = colorPool[Math.floor(Math.random() * colorPool.length)];
-    }
-    // add color to color used
-    colorUsed.push(randomColor);
-    colorObj[data.leagueId] = randomColor;
-  });
-  return colorObj;
-};
 
 router.get("/getUserHistory", async function (req, res) {
   const uid = res.locals.uid;
@@ -192,19 +162,13 @@ router.get("/getUserHistory", async function (req, res) {
       historyData.push({
         leagueID: doc.data().leagueId,
         leagueName: doc.data().leagueName,
-        color: "blue",
         date: doc.data().executed,
         stock: doc.data().stockName,
         quantity: doc.data().quantity,
-        action: doc.data().action.toUpperCase(),
+        action: doc.data().action,
         price: doc.data().price,
       })
     );
-    let colorPerLeague = setBg(historyData);
-    historyData.map((doc) => {
-      doc.color = colorPerLeague[doc.leagueId];
-    });
-
     res.status(200);
     res.json(historyData);
     // console.log(historyData);
@@ -237,8 +201,4 @@ router.post("/getMembers", async function (req, res) {
 });
 
 module.exports = router;
-// {
-//     "stockName": "TSLA",
-//     "quantity": 1,
-//     "leagueId": "BtKo6KxS84CqWQiNNEQQ"
-// }
+
