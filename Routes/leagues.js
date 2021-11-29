@@ -88,6 +88,9 @@ router.post("/addUser", async function (req, res) {
     res.send({ message: "User is already in league" });
     return;
   }
+  // get users name from User's collection
+  const memberData = await firebase.firestore().collection("users").doc(uid).get();
+
   try {
     // Get league info about initial capital
     const startingCapital = await getLeagueInitialCapital(body.leagueID);
@@ -95,6 +98,7 @@ router.post("/addUser", async function (req, res) {
     leagues.doc(body.leagueID).collection("members").doc(uid).set({
       cash: startingCapital,
       addedBy: uid,
+      userName: memberData.data().name,
       addedOn: firebase.firestore.Timestamp.now(),
     });
     // Add league id and league name in user collection
@@ -139,9 +143,41 @@ router.get("/getUserLeagues", async function (req, res) {
   }
 });
 
-// Endpoint to get all history of a user   
+// Endpoint to get all history of a user
+const setBg = (historyData) => {
+  // let randomColor = Math.floor(Math.random() * 16777215).toString(16);
+  const colorObj = {};
+  const colorPool = [
+    "#bb045d",
+    "#77aabd",
+    "#b607ea",
+    "#4ec7a3",
+    "#a0b285",
+    "#51225a",
+    "#e72644",
+    "#4e2f91",
+    "#1d2f4a",
+    "#8d25da",
+  ];
+  let colorUsed = [];
+  historyData.forEach((data) => {
+    // select random color from color pool
+    let randomColor = colorPool[Math.floor(Math.random() * colorPool.length)];
+    // check if color is already used
+    if (colorUsed.includes(randomColor)) {
+      // if color is already used, select another color
+      randomColor = colorPool[Math.floor(Math.random() * colorPool.length)];
+    }
+    // add color to color used
+    colorUsed.push(randomColor);
+    colorObj[data.leagueId] = randomColor;
+  });
+  return colorObj;
+};
+
 router.get("/getUserHistory", async function (req, res) {
   const uid = res.locals.uid;
+
   console.log("user", uid);
   try {
     const history = await firebase
@@ -149,11 +185,29 @@ router.get("/getUserHistory", async function (req, res) {
       .collection("users")
       .doc(uid)
       .collection("history")
+      .limit(2)
       .get();
-    const historyData = history.docs.map((doc) => doc.data());
+    const historyData = [];
+    history.docs.map((doc) =>
+      historyData.push({
+        leagueID: doc.data().leagueId,
+        leagueName: doc.data().leagueName,
+        color: "blue",
+        date: doc.data().executed,
+        stock: doc.data().stockName,
+        quantity: doc.data().quantity,
+        action: doc.data().action.toUpperCase(),
+        price: doc.data().price,
+      })
+    );
+    let colorPerLeague = setBg(historyData);
+    historyData.map((doc) => {
+      doc.color = colorPerLeague[doc.leagueId];
+    });
+
     res.status(200);
     res.json(historyData);
-    console.log(historyData);
+    // console.log(historyData);
   } catch (exception) {
     console.log("Error", exception);
     res.status(500);
@@ -161,6 +215,26 @@ router.get("/getUserHistory", async function (req, res) {
   }
 });
 
+//Endpoint to get all the members in a league on league page
+router.post("/getMembers", async function (req, res) {
+  const body = req.body.leagueID;
+  try {
+    const leagues = await firebase
+      .firestore()
+      .collection("leagues")
+      .doc(body)
+      .collection("members")
+      .get();
+    const leagueData = leagues.docs.map((doc) => doc.data()); //Is this needed?
+    res.status(200);
+    res.json(leagueData);
+    console.log(leagueData);
+  } catch (exception) {
+    console.log(exception);
+    res.status(500);
+    res.send({ message: "error in getting members in this league" });
+  }
+});
 
 module.exports = router;
 // {
