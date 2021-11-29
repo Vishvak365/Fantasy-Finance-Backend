@@ -88,6 +88,9 @@ router.post("/addUser", async function (req, res) {
     res.send({ message: "User is already in league" });
     return;
   }
+  // get users name from User's collection
+  const memberData = await firebase.firestore().collection("users").doc(uid).get();
+
   try {
     // Get league info about initial capital
     const startingCapital = await getLeagueInitialCapital(body.leagueID);
@@ -95,6 +98,7 @@ router.post("/addUser", async function (req, res) {
     leagues.doc(body.leagueID).collection("members").doc(uid).set({
       cash: startingCapital,
       addedBy: uid,
+      userName: memberData.data().name,
       addedOn: firebase.firestore.Timestamp.now(),
     });
     // Add league id and league name in user collection
@@ -138,4 +142,63 @@ router.get("/getUserLeagues", async function (req, res) {
     res.send({ message: "error in getting user leagues" });
   }
 });
+
+// Endpoint to get all history of a user
+
+router.get("/getUserHistory", async function (req, res) {
+  const uid = res.locals.uid;
+
+  console.log("user", uid);
+  try {
+    const history = await firebase
+      .firestore()
+      .collection("users")
+      .doc(uid)
+      .collection("history")
+      .limit(2)
+      .get();
+    const historyData = [];
+    history.docs.map((doc) =>
+      historyData.push({
+        leagueID: doc.data().leagueId,
+        leagueName: doc.data().leagueName,
+        date: doc.data().executed,
+        stock: doc.data().stockName,
+        quantity: doc.data().quantity,
+        action: doc.data().action,
+        price: doc.data().price,
+      })
+    );
+    res.status(200);
+    res.json(historyData);
+    // console.log(historyData);
+  } catch (exception) {
+    console.log("Error", exception);
+    res.status(500);
+    res.send({ message: "error in getting user history" });
+  }
+});
+
+//Endpoint to get all the members in a league on league page
+router.post("/getMembers", async function (req, res) {
+  const body = req.body.leagueID;
+  try {
+    const leagues = await firebase
+      .firestore()
+      .collection("leagues")
+      .doc(body)
+      .collection("members")
+      .get();
+    const leagueData = leagues.docs.map((doc) => doc.data()); //Is this needed?
+    res.status(200);
+    res.json(leagueData);
+    console.log(leagueData);
+  } catch (exception) {
+    console.log(exception);
+    res.status(500);
+    res.send({ message: "error in getting members in this league" });
+  }
+});
+
 module.exports = router;
+
