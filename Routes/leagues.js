@@ -188,8 +188,8 @@ router.get("/getUserHistory", async function (req, res) {
 });
 
 //Endpoint to get all the members in a league on league page
-router.post("/getMembers", async function (req, res) {
-  const body = req.body.leagueID;
+router.get("/getMembers", async function (req, res) {
+  const body = req.query.leagueId;
   try {
     const leagues = await firebase
       .firestore()
