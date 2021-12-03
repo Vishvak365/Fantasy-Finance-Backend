@@ -2,6 +2,10 @@ var express = require("express");
 var router = express.Router();
 const { buy_stock } = require("./leagues_trade/buy_stock");
 const firebase = require("../Firebase");
+const {
+  getLeagueData,
+  getUserCash,
+} = require("./leagues_trade/common_functions");
 
 const leagues = firebase.firestore().collection("leagues");
 router.post("/trade/buy_stock", buy_stock);
@@ -89,7 +93,12 @@ router.post("/addUser", async function (req, res) {
     return;
   }
   // get users name from User's collection
-  const memberData = await firebase.firestore().collection("users").doc(uid).get();
+  const memberData = await firebase
+    .firestore()
+    .collection("users")
+    .doc(uid)
+    .get();
+
   try {
     // Get league info about initial capital
     const startingCapital = await getLeagueInitialCapital(body.leagueID);
@@ -199,5 +208,17 @@ router.post("/getMembers", async function (req, res) {
   }
 });
 
-module.exports = router;
+router.get("/leagueInfo", async function (req, res) {
+  const leagueId = req.query.leagueId;
+  const leagueData = await getLeagueData(leagueId);
+  console.log(leagueData);
+  res.send(leagueData);
+});
 
+router.get("/userCash", async function (req, res) {
+  const uid = res.locals.uid;
+  const leagueId = req.query.leagueId;
+  const userCash = await getUserCash(leagueId, uid);
+  res.send({ userCash: userCash });
+});
+module.exports = router;
