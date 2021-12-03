@@ -2,7 +2,10 @@ var express = require("express");
 var router = express.Router();
 const { buy_stock } = require("./leagues_trade/buy_stock");
 const firebase = require("../Firebase");
-const { getLeagueData } = require("./leagues_trade/common_functions");
+const {
+  getLeagueData,
+  getUserCash,
+} = require("./leagues_trade/common_functions");
 
 const leagues = firebase.firestore().collection("leagues");
 router.post("/trade/buy_stock", buy_stock);
@@ -208,7 +211,14 @@ router.post("/getMembers", async function (req, res) {
 router.get("/leagueInfo", async function (req, res) {
   const leagueId = req.query.leagueId;
   const leagueData = await getLeagueData(leagueId);
-  console.log(leagueData)
+  console.log(leagueData);
   res.send(leagueData);
+});
+
+router.get("/userCash", async function (req, res) {
+  const uid = res.locals.uid;
+  const leagueId = req.query.leagueId;
+  const userCash = await getUserCash(leagueId, uid);
+  res.send({ userCash: userCash });
 });
 module.exports = router;
