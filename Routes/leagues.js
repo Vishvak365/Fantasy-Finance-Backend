@@ -154,7 +154,7 @@ router.get("/getUserHistory", async function (req, res) {
       .collection("users")
       .doc(uid)
       .collection("history")
-      .limit(2)
+      .limit(10)
       .get();
     const historyData = [];
     history.docs.map((doc) =>
