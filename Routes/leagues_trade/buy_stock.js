@@ -52,7 +52,12 @@ async function buy_stock(req, res) {
     leagueData.marketHoursOnly,
     body.quantity
   );
-
+  
+  if(body.quantity < 1){
+    res.status(400);
+    res.send({ message: "Quantity must be greater than 0" });
+    return;
+  }
   if (!checkMarketHours) {
     res.status(400);
     res.send({ message: "Out of market hours" });
