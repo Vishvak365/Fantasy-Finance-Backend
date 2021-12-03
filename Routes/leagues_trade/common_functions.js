@@ -1,3 +1,6 @@
+const firebase = require("../../Firebase");
+const leagues = firebase.firestore().collection("leagues");
+const users = firebase.firestore().collection("users");
 function isWithinMarketHours(marketHoursOnly) {
   let date = new Date();
   const hour = date.getHours();
@@ -16,4 +19,19 @@ function sufficientFunds(currUserCash, currStockPrice, quantity) {
   // console.log(currUserCash, currStockPrice, quantity);
   return currUserCash >= quantity * currStockPrice;
 }
-module.exports = { isWithinMarketHours, sufficientFunds };
+const getUserCash = async (leagueId, uid) => {
+  const data = await leagues.doc(leagueId).collection("members").doc(uid).get();
+  console.log(data.data());
+  return data.data().cash;
+};
+const getLeagueData = async (leagueId) => {
+  const data = await leagues.doc(leagueId).get();
+  console.log(data.data());
+  return data.data();
+};
+module.exports = {
+  isWithinMarketHours,
+  sufficientFunds,
+  getUserCash,
+  getLeagueData,
+};

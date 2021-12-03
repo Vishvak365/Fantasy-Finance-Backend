@@ -1,32 +1,26 @@
 var express = require("express");
 const firebase = require("../../Firebase");
 const getCurrPrice = require("./curr_price");
-const { isWithinMarketHours, sufficientFunds } = require("./common_functions");
+const {
+  isWithinMarketHours,
+  sufficientFunds,
+  getUserCash,
+  getLeagueData,
+} = require("./common_functions");
 const leagues = firebase.firestore().collection("leagues");
 const users = firebase.firestore().collection("users");
 
-const getLeagueData = async (leagueId) => {
-  const data = await leagues.doc(leagueId).get();
-  console.log(data.data());
-  return data.data();
-};
-const getUserCash = async (leagueId, uid) => {
-  const data = await leagues.doc(leagueId).collection("members").doc(uid).get();
-  console.log(data.data());
-  return data.data().cash;
-};
 const getStockQuantity = async (stockName, leagueId, uid) => {
-  try{
-  const data = await leagues
-    .doc(leagueId)
-    .collection("members")
-    .doc(uid)
-    .collection("stocks")
-    .doc(stockName)
-    .get();
+  try {
+    const data = await leagues
+      .doc(leagueId)
+      .collection("members")
+      .doc(uid)
+      .collection("stocks")
+      .doc(stockName)
+      .get();
     return data.data().quantity;
-  }
-  catch(exception){
+  } catch (exception) {
     console.log("exception", exception);
     return 0;
   }
@@ -35,6 +29,7 @@ const getStockQuantity = async (stockName, leagueId, uid) => {
 async function buy_stock(req, res) {
   const uid = res.locals.uid;
   const body = req.body;
+  console.log("body", body);
   //!FIXME Fix this logic to ||
   if ((!body.stockName, !body.quantity, !body.leagueId)) {
     res.status(400);
@@ -73,17 +68,12 @@ async function buy_stock(req, res) {
     uid
   );
   console.log("Stock Quantity", leagueQuantity);
- 
 
   // Updating the User Cash based on the Stock price and Quantity
   try {
-    leagues
-      .doc(body.leagueId)
-      .collection("members")
-      .doc(uid)
-      .set({
-        cash: newCash,
-      })
+    leagues.doc(body.leagueId).collection("members").doc(uid).set({
+      cash: newCash,
+    });
   } catch (exception) {
     console.log(exception);
     res.status(500);
@@ -101,7 +91,7 @@ async function buy_stock(req, res) {
       .doc(body.stockName)
       .set({
         quantity: leagueQuantity + body.quantity,
-      })
+      });
   } catch (exception) {
     console.log(exception);
     res.status(500);
@@ -111,12 +101,12 @@ async function buy_stock(req, res) {
 
   // Updating the user's history of transactions
   try {
-    users 
+    users
       .doc(uid)
       .collection("history")
       .doc()
       .set({
-        quantity: body.quantity,  
+        quantity: body.quantity,
         price: currStockPrice,
         stockName: body.stockName,
         leagueName: leagueData.name,

@@ -12,7 +12,7 @@ async function getCurrPrice(stockName) {
     return undefined;
   }
   try {
-    const data = await IEXClient.get(`/tops?symbols=${stockName}`);
+    const data = await IEXClient.get(`/tops?token=pk_5c3f7e028b3f41eb81e40b491969248d&symbols=${stockName}`);
     return data.data[0].lastSalePrice;
   } catch (exception) {
     console.log("Unable to get stock price information from IEX", exception);
