@@ -55,12 +55,12 @@ async function buy_stock(req, res) {
 
   if (!checkMarketHours) {
     res.status(400);
-    res.send({ message: "out of market hours" });
+    res.send({ message: "Out of market hours" });
     return;
   }
   if (!checkSufficientFunds) {
     res.status(400);
-    res.send({ message: "insufficent funds" });
+    res.send({ message: "Insufficent funds" });
     return;
   }
   console.log("user", currUser);
