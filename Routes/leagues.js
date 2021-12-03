@@ -1,6 +1,7 @@
 var express = require("express");
 var router = express.Router();
 const { buy_stock } = require("./leagues_trade/buy_stock");
+const { sell_stock } = require("./leagues_trade/sell_stock");
 const firebase = require("../Firebase");
 
 const leagues = firebase.firestore().collection("leagues");
