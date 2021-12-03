@@ -1,6 +1,6 @@
 const axios = require("axios");
 const client = axios.create({
-  baseURL: "https://api.iextrading.com/1.0",
+  baseURL: "https://cloud.iexapis.com/stable",
   // baseURL: "http://localhost:8080",
 });
 
