@@ -133,4 +133,28 @@ router.get("/getUserLeagues", async function (req, res) {
     res.send({ message: "error in getting user leagues" });
   }
 });
+
+//Endpoint to get all the members in a league on league page
+router.post("/getMembers", async function (req, res){
+  const body = req.body.lID;
+  console.log("body", body);
+  try {
+    const leagues = await firebase 
+      .firestore()
+      .collection("leagues")
+      .doc(body)
+      .collection("members")
+      .get();
+      const leagueData = leagues.docs.map((doc) => doc.data());  
+      res.status(200);
+      res.json(leagueData);
+      console.log(leagueData);
+  } catch (exception) {
+    console.log(exception);
+    res.status(500);
+    res.send({ message: "error in getting members in this league" });
+  }
+});
+
 module.exports = router;
+
