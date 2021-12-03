@@ -20,14 +20,8 @@ router.post("/trade/buy_stock", buy_stock);
 //   },
 // };
 
-// {"name": "Fantasy Finance League XYZ",
-//   "dayTrading": true,
-//   "marketHoursOnly": true,
-//   "startingCapital": 45000,
-//   "draftMode": {
-//     "draftEnd": 3242830480329
-//   }
-// }
+router.post("/trade/sell_stock", sell_stock);
+
 // Endpoint to create new league
 router.post("/create", function (req, res) {
   const uid = res.locals.uid;
@@ -222,3 +216,4 @@ router.get("/userCash", async function (req, res) {
   res.send({ userCash: userCash });
 });
 module.exports = router;
+
