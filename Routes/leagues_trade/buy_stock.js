@@ -81,7 +81,7 @@ async function buy_stock(req, res) {
       .set({
         ...currUser,
         cash: newCash,
-      })
+      });
   } catch (exception) {
     console.log(exception);
     res.status(500);
@@ -90,6 +90,7 @@ async function buy_stock(req, res) {
   }
 
   // Updating the User's stock quantity
+  const newStockQuantity = parseInt(leagueQuantity) + parseInt(body.quantity);
   try {
     leagues
       .doc(body.leagueId)
@@ -98,7 +99,7 @@ async function buy_stock(req, res) {
       .collection("stocks")
       .doc(body.stockName)
       .set({
-        quantity: leagueQuantity + body.quantity,
+        quantity: newStockQuantity,
       });
   } catch (exception) {
     console.log(exception);
