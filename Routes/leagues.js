@@ -90,7 +90,6 @@ router.post("/addUser", async function (req, res) {
   }
   // get users name from User's collection
   const memberData = await firebase.firestore().collection("users").doc(uid).get();
-
   try {
     // Get league info about initial capital
     const startingCapital = await getLeagueInitialCapital(body.leagueID);

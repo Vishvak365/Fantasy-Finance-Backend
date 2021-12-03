@@ -10,10 +10,10 @@ const getLeagueData = async (leagueId) => {
   console.log(data.data());
   return data.data();
 };
-const getUserCash = async (leagueId, uid) => {
+const getUser = async (leagueId, uid) => {
   const data = await leagues.doc(leagueId).collection("members").doc(uid).get();
   console.log(data.data());
-  return data.data().cash;
+  return data.data();
 };
 const getStockQuantity = async (stockName, leagueId, uid) => {
   try{
@@ -44,8 +44,10 @@ async function buy_stock(req, res) {
   }
   console.log("UserID", uid);
   const currStockPrice = await getCurrPrice(body.stockName);
+
   const leagueData = await getLeagueData(body.leagueId);
-  const currUserCash = await getUserCash(body.leagueId, uid);
+  const currUser = await getUser(body.leagueId, uid);
+  const currUserCash = currUser.cash;
 
   const checkSufficientFunds = sufficientFunds(
     currUserCash,
@@ -67,6 +69,7 @@ async function buy_stock(req, res) {
     res.send({ message: "insufficent funds" });
     return;
   }
+  console.log("user", currUser);
   const newCash = currUserCash - body.quantity * currStockPrice;
   const leagueQuantity = await getStockQuantity(
     body.stockName,
@@ -83,6 +86,7 @@ async function buy_stock(req, res) {
       .collection("members")
       .doc(uid)
       .set({
+        ...currUser,
         cash: newCash,
       })
   } catch (exception) {
