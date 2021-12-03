@@ -4,7 +4,7 @@ const getCurrPrice = require("./curr_price");
 const {
   isWithinMarketHours,
   sufficientFunds,
-  getUserCash,
+  getUser,
   getLeagueData,
 } = require("./common_functions");
 const leagues = firebase.firestore().collection("leagues");
@@ -38,8 +38,10 @@ async function buy_stock(req, res) {
   }
   console.log("UserID", uid);
   const currStockPrice = await getCurrPrice(body.stockName);
+
   const leagueData = await getLeagueData(body.leagueId);
-  const currUserCash = await getUserCash(body.leagueId, uid);
+  const currUser = await getUser(body.leagueId, uid);
+  const currUserCash = currUser.cash;
 
   const checkSufficientFunds = sufficientFunds(
     currUserCash,
@@ -61,6 +63,7 @@ async function buy_stock(req, res) {
     res.send({ message: "insufficent funds" });
     return;
   }
+  console.log("user", currUser);
   const newCash = currUserCash - body.quantity * currStockPrice;
   const leagueQuantity = await getStockQuantity(
     body.stockName,
@@ -71,9 +74,14 @@ async function buy_stock(req, res) {
 
   // Updating the User Cash based on the Stock price and Quantity
   try {
-    leagues.doc(body.leagueId).collection("members").doc(uid).set({
-      cash: newCash,
-    });
+    leagues
+      .doc(body.leagueId)
+      .collection("members")
+      .doc(uid)
+      .set({
+        ...currUser,
+        cash: newCash,
+      })
   } catch (exception) {
     console.log(exception);
     res.status(500);
