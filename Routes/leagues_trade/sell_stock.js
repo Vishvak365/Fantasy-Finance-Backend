@@ -6,7 +6,7 @@ const getCurrPrice = require("./curr_price");
 const {
   isWithinMarketHours,
   sufficientFunds,
-  getUser,
+  getUserData,
   getLeagueData,
 } = require("./common_functions");
 
@@ -71,7 +71,7 @@ async function sell_stock(req, res) {
   const currStockPrice = await getCurrPrice(stockName);
 
   const leagueData = await getLeagueData(body.leagueId);
-  const currUser = await getUser(body.leagueId, uid);
+  const currUser = await getUserData(body.leagueId, uid);
   const currUserCash = currUser.cash;
   const startingCapital = await getLeagueInitialCapital(body.leagueId);
   const stockQuantity = await getStockQuantity(
@@ -105,8 +105,7 @@ async function sell_stock(req, res) {
     res.json({ message: "Not enough shares to sell" });
     return;
   }
-  
-  
+
   try {
     await leagues
       .doc(body.leagueId)

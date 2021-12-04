@@ -4,7 +4,7 @@ const getCurrPrice = require("./curr_price");
 const {
   isWithinMarketHours,
   sufficientFunds,
-  getUser,
+  getUserData,
   getLeagueData,
 } = require("./common_functions");
 const leagues = firebase.firestore().collection("leagues");
@@ -55,7 +55,7 @@ async function buy_stock(req, res) {
   const currStockPrice = await getCurrPrice(body.stockName);
 
   const leagueData = await getLeagueData(body.leagueId);
-  const currUser = await getUser(body.leagueId, uid);
+  const currUser = await getUserData(body.leagueId, uid);
   const currUserCash = currUser.cash;
 
   const checkSufficientFunds = sufficientFunds(
