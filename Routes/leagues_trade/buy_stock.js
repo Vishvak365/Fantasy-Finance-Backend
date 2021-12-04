@@ -25,6 +25,21 @@ const getStockQuantity = async (stockName, leagueId, uid) => {
     return 0;
   }
 };
+const getstockAvgPrice = async (stockName, leagueId, uid) => {
+  try {
+    const data = await leagues
+      .doc(leagueId)
+      .collection("members")
+      .doc(uid)
+      .collection("stocks")
+      .doc(stockName)
+      .get();
+    return data.data().avgPrice;
+  } catch (exception) {
+    console.log("exception", exception);
+    return 0;
+  }
+};
 
 async function buy_stock(req, res) {
   const uid = res.locals.uid;
@@ -52,8 +67,8 @@ async function buy_stock(req, res) {
     leagueData.marketHoursOnly,
     body.quantity
   );
-  
-  if(body.quantity < 1){
+
+  if (body.quantity < 1) {
     res.status(400);
     res.send({ message: "Quantity must be greater than 0" });
     return;
@@ -70,12 +85,17 @@ async function buy_stock(req, res) {
   }
   console.log("user", currUser);
   const newCash = currUserCash - body.quantity * currStockPrice;
-  const leagueQuantity = await getStockQuantity(
+  const stockQuantity = await getStockQuantity(
     body.stockName,
     body.leagueId,
     uid
   );
-  console.log("Stock Quantity", leagueQuantity);
+  const stockAvgPrice = await getstockAvgPrice(
+    body.stockName,
+    body.leagueId,
+    uid
+  );
+  console.log("Stock Quantity", stockQuantity);
 
   // Updating the User Cash based on the Stock price and Quantity
   try {
@@ -95,7 +115,11 @@ async function buy_stock(req, res) {
   }
 
   // Updating the User's stock quantity
-  const newStockQuantity = parseInt(leagueQuantity) + parseInt(body.quantity);
+  const newStockQuantity = parseInt(stockQuantity) + parseInt(body.quantity);
+
+  const currAvgPrice =
+    (stockQuantity * stockAvgPrice + body.quantity * currStockPrice) /
+    newStockQuantity;
   try {
     leagues
       .doc(body.leagueId)
@@ -105,6 +129,7 @@ async function buy_stock(req, res) {
       .doc(body.stockName)
       .set({
         quantity: newStockQuantity,
+        avgPrice: currAvgPrice,
       });
   } catch (exception) {
     console.log(exception);
