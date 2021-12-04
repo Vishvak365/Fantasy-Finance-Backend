@@ -19,17 +19,13 @@ function sufficientFunds(currUserCash, currStockPrice, quantity) {
   // console.log(currUserCash, currStockPrice, quantity);
   return currUserCash >= quantity * currStockPrice;
 }
-// const getUserCash = async (leagueId, uid) => {
-//   const data = await leagues.doc(leagueId).collection("members").doc(uid).get();
-//   console.log(data.data());
-//   return data.data().cash;
-// };
+
 const getLeagueData = async (leagueId) => {
   const data = await leagues.doc(leagueId).get();
   console.log(data.data());
   return data.data();
 };
-const getUser = async (leagueId, uid) => {
+const getUserData = async (leagueId, uid) => {
   const data = await leagues.doc(leagueId).collection("members").doc(uid).get();
   console.log(data.data());
   return data.data();
@@ -37,6 +33,6 @@ const getUser = async (leagueId, uid) => {
 module.exports = {
   isWithinMarketHours,
   sufficientFunds,
-  getUser,
+  getUserData,
   getLeagueData,
 };
