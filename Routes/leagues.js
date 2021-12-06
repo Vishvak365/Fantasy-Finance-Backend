@@ -5,7 +5,7 @@ const { sell_stock } = require("./leagues_trade/sell_stock");
 const firebase = require("../Firebase");
 const {
   getLeagueData,
-  getUserCash,
+  getUserData,
 } = require("./leagues_trade/common_functions");
 
 const leagues = firebase.firestore().collection("leagues");
@@ -228,7 +228,7 @@ router.get("/leagueInfo", async function (req, res) {
 router.get("/userCash", async function (req, res) {
   const uid = res.locals.uid;
   const leagueId = req.query.leagueId;
-  const userCash = await getUserCash(leagueId, uid);
-  res.send({ userCash: userCash });
+  const userCash = await getUserData(leagueId, uid);
+  res.send({ userCash: userCash.cash });
 });
 module.exports = router;
