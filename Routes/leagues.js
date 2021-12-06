@@ -29,28 +29,31 @@ router.post("/create", function (req, res) {
   const body = req.body;
 
   //Checks to make sure that all the information is provided
-  if (
-    !body.name ||
-    !body.dayTrading ||
-    !body.marketHoursOnly ||
-    !body.startingCapital
-  ) {
+  console.log(body.dayTrading, body.marketHoursOnly);
+  if (!body.name || !body.startingCapital) {
     res.status(400);
     res.send({ message: "Insufficient information to create league" });
     return;
   }
   try {
     leagues
-      .doc()
-      .set({
+      .add({
         ...body,
         creator: uid,
         created: firebase.firestore.Timestamp.now(),
       })
-      .then((data) => {
-        res.status(200);
-        res.json(data);
-        return;
+      .then((docRef) => {
+        try {
+          addUserToLeague(docRef.id, uid).then((data) => {
+            res.status(200);
+            res.send({ message: "League created successfully", data });
+            res.send({ message: "League created", leagueID: docRef.id });
+            return;
+          });
+        } catch (exception) {
+          res.status(500);
+          res.send({ message: "error in adding user to league" });
+        }
       });
   } catch (exception) {
     console.log(exception);
@@ -58,6 +61,45 @@ router.post("/create", function (req, res) {
     res.send({ message: "error in creating league" });
   }
 });
+
+const addUserToLeague = async (leagueID, uid) => {
+  const league = await leagues.doc(leagueID).get();
+  const leagueData = league.data();
+  // get users name from User's collection
+  const memberData = await firebase
+    .firestore()
+    .collection("users")
+    .doc(uid)
+    .get();
+
+  try {
+    // Get league info about initial capital
+    const startingCapital = await getLeagueInitialCapital(leagueID);
+    // Add user to league in leagues collection
+    leagues.doc(leagueID).collection("members").doc(uid).set({
+      cash: startingCapital,
+      addedBy: uid,
+      userName: memberData.data().name,
+      addedOn: firebase.firestore.Timestamp.now(),
+    });
+    firebase
+      .firestore()
+      .collection("users")
+      .doc(uid)
+      .collection("leagues")
+      .doc(leagueID)
+      .set({
+        leagueID: leagueID,
+        leagueName: leagueData.name,
+      })
+      .then((data) => {
+        return data;
+      });
+  } catch (exception) {
+    console.log(exception);
+    return;
+  }
+};
 
 async function getLeagueInitialCapital(leagueID) {
   const data = await leagues.doc(leagueID).get();
@@ -80,46 +122,19 @@ router.post("/addUser", async function (req, res) {
     res.send({ message: "League does not exist" });
     return;
   }
-  //Check Firebase firestore to make sure that user is not already in league collection
   const user = await leagues.doc(leagueID).collection("members").doc(uid).get();
   if (user.exists) {
     res.status(400);
     res.send({ message: "User is already in league" });
     return;
   }
-  // get users name from User's collection
-  const memberData = await firebase
-    .firestore()
-    .collection("users")
-    .doc(uid)
-    .get();
 
   try {
-    // Get league info about initial capital
-    const startingCapital = await getLeagueInitialCapital(body.leagueID);
-    // Add user to league in leagues collection
-    leagues.doc(body.leagueID).collection("members").doc(uid).set({
-      cash: startingCapital,
-      addedBy: uid,
-      userName: memberData.data().name,
-      addedOn: firebase.firestore.Timestamp.now(),
+    addUserToLeague(leagueID, uid).then(() => {
+      res.status(200);
+      res.send({ message: "User added to league" });
+      return;
     });
-    // Add league id and league name in user collection
-    firebase
-      .firestore()
-      .collection("users")
-      .doc(uid)
-      .collection("leagues")
-      .doc(body.leagueID)
-      .set({
-        leagueID: body.leagueID,
-        leagueName: league.data().name,
-      })
-      .then((data) => {
-        res.status(200);
-        res.json(data);
-        return;
-      });
   } catch (exception) {
     console.log(exception);
     res.status(500);
