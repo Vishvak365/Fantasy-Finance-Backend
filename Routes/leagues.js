@@ -35,6 +35,21 @@ router.post("/create", function (req, res) {
     res.send({ message: "Insufficient information to create league" });
     return;
   }
+
+  const checkLeagueCount = firebase
+    .firestore()
+    .collection("users")
+    .doc(uid)
+    .get();
+  checkLeagueCount.then((doc) => {
+    if (doc.data().leagues >= 3 && doc.data().premium === false) {
+      console.log("User has reached max leagues");
+      res.status(400);
+      res.send({ message: "You have reached the maximum number of leagues" });
+      return;
+    }
+  });
+
   try {
     leagues
       .add({
@@ -93,6 +108,11 @@ const addUserToLeague = async (leagueID, uid) => {
         leagueName: leagueData.name,
       })
       .then((data) => {
+        firebase
+          .firestore()
+          .collection("users")
+          .doc(uid)
+          .update({ leagues: firebase.firestore.FieldValue.increment(1) });
         return data;
       });
   } catch (exception) {
@@ -116,13 +136,29 @@ router.post("/addUser", async function (req, res) {
   }
   //Check Firebase Firestore to make sure that league ID collection exists
   const leagueID = body.leagueID;
+
   const league = await leagues.doc(leagueID).get();
   if (!league.exists) {
     res.status(400);
     res.send({ message: "League does not exist" });
     return;
   }
+
+  const checkLeagueCount = firebase
+    .firestore()
+    .collection("users")
+    .doc(uid)
+    .get();
+  checkLeagueCount.then((doc) => {
+    if (doc.data().leagues >= 3 && doc.data().premium === false) {
+      console.log("User has reached max leagues");
+      res.status(400);
+      res.send({ message: "You have reached the maximum number of leagues" });
+      return;
+    }
+  });
   const user = await leagues.doc(leagueID).collection("members").doc(uid).get();
+
   if (user.exists) {
     res.status(400);
     res.send({ message: "User is already in league" });
