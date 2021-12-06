@@ -79,17 +79,30 @@ async function sell_stock(req, res) {
     body.leagueId,
     uid
   );
-  console.log(
-    "asdkfjalsdkjflaksdjf",
-    currUserCash,
-    stockQuantity,
-    currStockPrice
-  );
-  console.log("USER STOCK QUANTITY + 0", stockQuantity);
+  // console.log(
+  //   "asdkfjalsdkjflaksdjf",
+  //   currUserCash,
+  //   stockQuantity,
+  //   currStockPrice
+  // );
+  // console.log("USER STOCK QUANTITY + 0", stockQuantity);
 
-  console.log(leagueData);
+  // console.log(leagueData);
 
   //Helper function to check if we are within Market Hours
+  try {
+    leagues
+      .doc(body.leagueId)
+      .collection("members")
+      .doc(uid)
+      .collection("stocks")
+      .doc(body.stockName)
+      .get();
+  } catch (exception) {
+    console.log(exception);
+    res.status(500);
+    res.send({ message: "Do not own this stock" });
+  }
   const checkMarketHours = isWithinMarketHours(
     leagueData.marketHoursOnly,
     body.quantity
@@ -111,7 +124,7 @@ async function sell_stock(req, res) {
       .doc(body.leagueId)
       .collection("members")
       .doc(uid)
-      .set({
+      .update({
         cash: currUserCash + currStockPrice * body.quantity,
       });
 
@@ -122,11 +135,37 @@ async function sell_stock(req, res) {
       .doc(uid)
       .collection("stocks")
       .doc(body.stockName)
-      .set({
+      .update({
         quantity: stockQuantity - body.quantity,
       });
-    res.status(200);
-    res.json({ message: "successfully sold shares" });
+    // res.status(200);
+    // res.json({ message: "successfully sold shares" });
+  } catch (exception) {
+    console.log(exception);
+    res.status(500);
+    res.send({ message: "error in selling the stock" });
+    return;
+  }
+
+  try {
+    users
+      .doc(uid)
+      .collection("history")
+      .doc()
+      .set({
+        quantity: body.quantity,
+        price: currStockPrice,
+        stockName: body.stockName,
+        leagueName: leagueData.name,
+        leagueId: body.leagueId,
+        executed: firebase.firestore.Timestamp.now(),
+        action: "sell",
+      })
+      .then(() => {
+        res.status(200);
+        res.send({ message: "successfully sold shares" });
+        return;
+      });
   } catch (exception) {
     console.log(exception);
     res.status(500);
