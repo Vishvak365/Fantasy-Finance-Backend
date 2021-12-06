@@ -99,14 +99,9 @@ async function buy_stock(req, res) {
 
   // Updating the User Cash based on the Stock price and Quantity
   try {
-    leagues
-      .doc(body.leagueId)
-      .collection("members")
-      .doc(uid)
-      .set({
-        ...currUser,
-        cash: newCash,
-      });
+    leagues.doc(body.leagueId).collection("members").doc(uid).update({
+      cash: newCash,
+    });
   } catch (exception) {
     console.log(exception);
     res.status(500);
