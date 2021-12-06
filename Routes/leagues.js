@@ -7,22 +7,18 @@ const {
   getLeagueData,
   getUserData,
 } = require("./leagues_trade/common_functions");
+const {
+  portfolio_value,
+  portfolio_value_stock,
+} = require("./leagues_trade/portfolio_value");
 
 const leagues = firebase.firestore().collection("leagues");
 router.post("/trade/buy_stock", buy_stock);
-// const samplePost = {
-//   name: "Fantasy Finance League XYZ",
-//   dayTrading: true,
-//   marketHoursOnly: true,
-//   startingCapital: 45000,
-//   //optionalx
-//   draftMode: {
-//     draftEnd: 3242830480329,
-//   },
-// };
 
 router.post("/trade/sell_stock", sell_stock);
 
+router.get("/portfolioValue/total", portfolio_value);
+router.get("/portfolioValue/stock", portfolio_value_stock);
 // Endpoint to create new league
 router.post("/create", function (req, res) {
   const uid = res.locals.uid;
