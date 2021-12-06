@@ -25,6 +25,7 @@ router.post("/createUser", (req, res) => {
             name: userRecord.displayName,
             premium: false,
             created: firebase.firestore.Timestamp.now(),
+            leagues: 0,
           })
           .then((data) => {
             res.status(200);
