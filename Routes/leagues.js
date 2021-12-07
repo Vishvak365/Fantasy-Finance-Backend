@@ -263,6 +263,13 @@ router.get("/leagueInfo", async function (req, res) {
   res.send(leagueData);
 });
 
+router.get("/userLeagueInfo", async function (req, res) {
+  const uid = req.query.uid ? req.query.uid : res.locals.uid;
+  const leagueId = req.query.leagueId;
+  const userData = await getUserData(leagueId, uid);
+  res.send(userData);
+});
+
 router.get("/userCash", async function (req, res) {
   const uid = res.locals.uid;
   const leagueId = req.query.leagueId;
