@@ -233,16 +233,22 @@ router.get("/getUserHistory", async function (req, res) {
 router.get("/getMembers", async function (req, res) {
   const body = req.query.leagueId;
   try {
-    const leagues = await firebase
+    const league = await firebase
       .firestore()
       .collection("leagues")
       .doc(body)
       .collection("members")
       .get();
-    const leagueData = leagues.docs.map((doc) => doc.data()); //Is this needed?
-    res.status(200);
-    res.json(leagueData);
-    console.log(leagueData);
+    let league_users = [];
+    for (i = 0; i < league.docs.length; i++) {
+      const user_id = league.docs[i].id;
+      const user_data = league.docs[i].data();
+      league_users.push({ user_id, ...user_data });
+    }
+    // const leagueData = leagues.docs.map((doc) => doc.data()); //Is this needed?
+    // res.status(200);
+    res.json(league_users);
+    // console.log(leagueData);
   } catch (exception) {
     console.log(exception);
     res.status(500);
